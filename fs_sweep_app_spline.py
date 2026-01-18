@@ -825,7 +825,7 @@ def main():
         figure_width_px = st.sidebar.slider("Figure width (px)", min_value=800, max_value=2200, value=DEFAULT_FIGURE_WIDTH_PX, step=50)
 
     enable_spline = st.sidebar.checkbox("Spline (slow)", value=False)
-    smooth = 0.6
+    smooth = 1
     if enable_spline:
         smooth = st.sidebar.slider("Spline smoothing", min_value=0.0, max_value=1.3, value=0.6, step=0.05)
 
@@ -835,6 +835,10 @@ def main():
     legend_entrywidth = 180
     if not auto_legend_entrywidth:
         legend_entrywidth = st.sidebar.slider("Legend column width (px)", min_value=50, max_value=300, value=180, step=10)
+
+    # Keep the download buttons visually within the "Legend & Export" section,
+    # but fill their contents later once figures are built.
+    download_area = st.sidebar.container()
 
     download_config = {
         "toImageButtonOptions": {
@@ -935,57 +939,57 @@ def main():
     if xr_total > 0 and xr_dropped > 0:
         st.caption(f"X/R: dropped {xr_dropped} of {xr_total} points where |R| < 1e-9 or data missing.")
 
-    # Sidebar download buttons (no Streamlit rerun-driven "status" text in the main area).
     export_scale = 4
     export_width_px = int(figure_width_px) if not use_auto_width else -1
-    with st.sidebar:
+    with download_area:
         st.subheader("Download (Full Legend)")
         st.caption("Browser PNG download (requires access to https://cdn.plot.ly).")
-
-        fig_x_export = _build_export_figure(fig_x, plot_height, export_width_px, legend_entrywidth)
-        _render_client_png_download(
-            fig_x_export,
-            filename="X_full_legend.png",
-            width_px=export_width_px,
-            height_px=int(fig_x_export.layout.height or 800),
-            scale=export_scale,
-            button_label="X PNG",
-            plot_height=plot_height,
-            legend_entrywidth=legend_entrywidth,
-            plot_index=0,
-            manual_legend=True,
-            legend_font_size_px=EXPORT_LEGEND_FONT_SIZE_PX_DEFAULT,
-        )
-
-        fig_r_export = _build_export_figure(fig_r, plot_height, export_width_px, legend_entrywidth)
-        _render_client_png_download(
-            fig_r_export,
-            filename="R_full_legend.png",
-            width_px=export_width_px,
-            height_px=int(fig_r_export.layout.height or 800),
-            scale=export_scale,
-            button_label="R PNG",
-            plot_height=plot_height,
-            legend_entrywidth=legend_entrywidth,
-            plot_index=1,
-            manual_legend=True,
-            legend_font_size_px=EXPORT_LEGEND_FONT_SIZE_PX_DEFAULT,
-        )
-
-        fig_xr_export = _build_export_figure(fig_xr, plot_height, export_width_px, legend_entrywidth)
-        _render_client_png_download(
-            fig_xr_export,
-            filename="X_over_R_full_legend.png",
-            width_px=export_width_px,
-            height_px=int(fig_xr_export.layout.height or 800),
-            scale=export_scale,
-            button_label="X/R PNG",
-            plot_height=plot_height,
-            legend_entrywidth=legend_entrywidth,
-            plot_index=2,
-            manual_legend=True,
-            legend_font_size_px=EXPORT_LEGEND_FONT_SIZE_PX_DEFAULT,
-        )
+        cols = st.columns(3)
+        with cols[0]:
+            fig_x_export = _build_export_figure(fig_x, plot_height, export_width_px, legend_entrywidth)
+            _render_client_png_download(
+                fig_x_export,
+                filename="X_full_legend.png",
+                width_px=export_width_px,
+                height_px=int(fig_x_export.layout.height or 800),
+                scale=export_scale,
+                button_label="X PNG",
+                plot_height=plot_height,
+                legend_entrywidth=legend_entrywidth,
+                plot_index=0,
+                manual_legend=True,
+                legend_font_size_px=EXPORT_LEGEND_FONT_SIZE_PX_DEFAULT,
+            )
+        with cols[1]:
+            fig_r_export = _build_export_figure(fig_r, plot_height, export_width_px, legend_entrywidth)
+            _render_client_png_download(
+                fig_r_export,
+                filename="R_full_legend.png",
+                width_px=export_width_px,
+                height_px=int(fig_r_export.layout.height or 800),
+                scale=export_scale,
+                button_label="R PNG",
+                plot_height=plot_height,
+                legend_entrywidth=legend_entrywidth,
+                plot_index=1,
+                manual_legend=True,
+                legend_font_size_px=EXPORT_LEGEND_FONT_SIZE_PX_DEFAULT,
+            )
+        with cols[2]:
+            fig_xr_export = _build_export_figure(fig_xr, plot_height, export_width_px, legend_entrywidth)
+            _render_client_png_download(
+                fig_xr_export,
+                filename="X_over_R_full_legend.png",
+                width_px=export_width_px,
+                height_px=int(fig_xr_export.layout.height or 800),
+                scale=export_scale,
+                button_label="X/R PNG",
+                plot_height=plot_height,
+                legend_entrywidth=legend_entrywidth,
+                plot_index=2,
+                manual_legend=True,
+                legend_font_size_px=EXPORT_LEGEND_FONT_SIZE_PX_DEFAULT,
+            )
 
     st.plotly_chart(fig_x, use_container_width=bool(use_auto_width), config=download_config)
     st.markdown("<div style='height:36px'></div>", unsafe_allow_html=True)
